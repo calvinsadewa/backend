@@ -1,0 +1,36 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+#
+# Note: @controllers syntax signifies the actual controller instance, retrieved via GlobalSettings.getController().
+# ~~~~
+
+# Single endpoint for serving AngularJS
+GET     /                           @controllers.Application.index
+GET     /randomUUID                 @controllers.Application.randomUUID
+
+# User management API
+POST    /user/add_user              @controllers.Users.createUser
+GET     /user/check_password        @controllers.Users.checkPassword
+POST    /user/update_password       @controllers.Users.updatePassword
+
+# Thrid Party management API
+POST    /thridparty/add_user        @controllers.ThridParties.createThridParty
+GET     /thridparty/check_password  @controllers.ThridParties.checkPassword
+POST    /thridparty/update_password @controllers.ThridParties.updatePassword
+GET     /thridparty/get_preferable  @controllers.ThridParties.getPreferable
+POST    /thridparty/update_preferable   @controllers.ThridParties.updatePreferable
+GET     /thridparty/get_all_stream_id   @controllers.ThridParties.getStreamIdList
+POST    /thridparty/add_stream      @controllers.ThridParties.addRawStream
+
+GET     /test                       @controllers.ThridParties.test
+
+# Analysis Type API
+GET     /analysis/all               @controllers.AnalysisTypes.getAllTypes
+GET     /analysis/get/:id           @controllers.AnalysisTypes.getSpesificTypes(id)
+
+# Stream API
+GET     /stream/:id                 @controllers.Streams.getStream(id)
+GET     /raw/:id                    @controllers.Streams.getRawStream(id)
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
