@@ -28,4 +28,7 @@ object JsonFormats {
   implicit val getPreferableAnalysisFormat = Json.format[GetPreferableAnalysis]
   implicit val returnGetPreferableAnalysisFormat = Json.format[ReturnGetPreferableAnalysis]
   implicit val updatePreferableFormat = Json.format[UpdatePreferable]
+  implicit val getRandomStreamFormat = Json.format[GetRandomStream]
+  implicit val validateStreamFormat = Json.format[ValidateStream]
+  implicit val getVisitedStreams = Json.format[GetVisitedStreams]
 }

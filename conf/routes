@@ -12,6 +12,9 @@ GET     /randomUUID                 @controllers.Application.randomUUID
 POST    /user/add_user              @controllers.Users.createUser
 GET     /user/check_password        @controllers.Users.checkPassword
 POST    /user/update_password       @controllers.Users.updatePassword
+GET     /user/get_random_stream     @controllers.Users.getRandomStream
+POST    /user/validate_stream       @controllers.Users.validateStream
+GET     /user/visited_streams       @controllers.Users.VisitedStreams
 
 # Thrid Party management API
 POST    /thridparty/add_user        @controllers.ThridParties.createThridParty
@@ -22,7 +25,7 @@ POST    /thridparty/update_preferable   @controllers.ThridParties.updatePreferab
 GET     /thridparty/get_all_stream_id   @controllers.ThridParties.getStreamIdList
 POST    /thridparty/add_stream      @controllers.ThridParties.addRawStream
 
-GET     /test                       @controllers.ThridParties.test
+GET     /test                       @controllers.Users.test
 
 # Analysis Type API
 GET     /analysis/all               @controllers.AnalysisTypes.getAllTypes

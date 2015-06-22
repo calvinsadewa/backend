@@ -4,7 +4,7 @@ import java.util.Date
 
 import models.DBName
 import parser._
-import javax.inject.Singleton
+import javax.inject.{Inject, Singleton}
 
 import models.message._
 import org.slf4j.{Logger, LoggerFactory}
@@ -25,7 +25,7 @@ import scala.concurrent.Future
  * @see https://github.com/ReactiveMongo/Play-ReactiveMongo
  */
 @Singleton
-class ThridParties extends Controller with MongoController {
+class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller with MongoController {
 
   private final val logger: Logger = LoggerFactory.getLogger(classOf[ThridParties])
 
@@ -123,11 +123,11 @@ class ThridParties extends Controller with MongoController {
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
-  def addRawStream = Action.async(parse.json) { //To Test
+  def addRawStream = Action.async(parse.json) {
     request =>
       request.body.validate[AddRawStreamMessage].map { message =>
         findThridParty(message.username).flatMap( opt => opt.map( thridParty =>
-          if (thridParty.password == message.password) Parser.getParser(message.filetype).map( prsr =>
+          if (thridParty.password == message.password) parserMatcher.getParser(message.filetype).map( prsr =>
             getAnalysisTypeDetail(thridParty.preferable_analysis).flatMap( listAnalysisType => {
               val id = BSONObjectID.generate.stringify
               prsr.parse(message.content, message.maxvalidasi, listAnalysisType, thridParty._id, id).map( stream =>
@@ -146,7 +146,7 @@ class ThridParties extends Controller with MongoController {
       } getOrElse Future.successful(BadRequest("invalid json"))
   }
 
-  def getStreamIdList = Action.async(parse.json) { //To Test
+  def getStreamIdList = Action.async(parse.json) {
     request =>
       request.body.validate[GetStreamIdList].map { message =>
         findThridParty(message.username).flatMap( opt => opt.map( thridParty =>
@@ -167,7 +167,7 @@ class ThridParties extends Controller with MongoController {
       } getOrElse Future.successful(BadRequest("invalid json format"))
   }
 
-  def updatePreferable = Action.async(parse.json) { // To Test
+  def updatePreferable = Action.async(parse.json) {
     request =>
       request.body.validate[UpdatePreferable].map( message => {
         findThridParty(message.username).flatMap( opt => opt.map( thridParty =>
@@ -188,7 +188,7 @@ class ThridParties extends Controller with MongoController {
       }) getOrElse Future.successful(BadRequest("invalid format"))
   }
 
-  def getPreferable = Action.async(parse.json) { // To Test
+  def getPreferable = Action.async(parse.json) {
     request =>
       request.body.validate[GetPreferableAnalysis].map( message => {
         findThridParty(message.username).flatMap( opt => opt.map( thridParty =>
@@ -200,16 +200,6 @@ class ThridParties extends Controller with MongoController {
             Future.successful(BadRequest("Password wrong"))
         ) getOrElse Future.successful(BadRequest("User doesn't exist")))
       }) getOrElse Future.successful(BadRequest("invalid format"))
-  }
-
-  def test = Action.async(parse.anyContent) {
-    req =>
-      val id = BSONObjectID.generate.stringify
-      var test = RawStream("557a7c0a7e26b84302120c92","hari ini biru","raw")
-      rawcollection.insert (test)
-      test = RawStream("557a7c9d7e26b84302120c93","H4XXOR L4st 4evr","raw")
-      rawcollection.insert (test)
-      Future.successful(Ok)
   }
 
   def checkPasswords(username: String, password: String): Future[Boolean] = {

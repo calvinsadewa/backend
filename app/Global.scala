@@ -1,4 +1,5 @@
 import com.google.inject.{Guice, AbstractModule}
+import parser.ParserMatcher
 import play.api.GlobalSettings
 import services.{SimpleUUIDGenerator, UUIDGenerator}
 

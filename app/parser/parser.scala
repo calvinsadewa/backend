@@ -20,7 +20,7 @@ abstract class Parser {
             idrawstream:String = "") : Option[Stream]
 }
 
-object Parser{
+class ParserMatcher{
   def getParser(filetype:String):Option[Parser] = {
     filetype match {
       case "raw" => Some(new DirectParser)
