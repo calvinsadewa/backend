@@ -1,6 +1,7 @@
 package models
 
 import models.message._
+import models.message.log._
 
 /**
  * Created by calvin-pc on 6/10/2015.
@@ -31,4 +32,14 @@ object JsonFormats {
   implicit val getRandomStreamFormat = Json.format[GetRandomStream]
   implicit val validateStreamFormat = Json.format[ValidateStream]
   implicit val getVisitedStreams = Json.format[GetVisitedStreams]
+  implicit val updatePreferableContent= Json.format[UpdatePreferableContent]
+  implicit val updatePreferableLog=Json.format[UpdatePreferableLog]
+  implicit val addRawStreamContent=Json.format[AddRawStreamContent]
+  implicit val addRawStreamLog=Json.format[AddRawStreamLog]
+  implicit val validateStreamContent=Json.format[ValidateStreamContent]
+  implicit val validateStreamLog=Json.format[ValidateStreamLog]
+  implicit val updatePasswordContent=Json.format[UpdatePasswordContent]
+  implicit val updatePasswordLog=Json.format[UpdatePasswordLog]
+  implicit val userContent=Json.format[UserContent]
+  implicit val userLog =Json.format[UserLog]
 }

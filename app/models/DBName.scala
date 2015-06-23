@@ -11,4 +11,5 @@ object DBName {
   val stream = "stream"
   val rawStream = "rawstream"
   val user = "users"
+  val log = "log"
 }

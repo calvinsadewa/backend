@@ -3,6 +3,7 @@ package controllers
 import java.util.Date
 
 import models.DBName
+import models.message.log._
 import parser._
 import javax.inject.{Inject, Singleton}
 
@@ -28,7 +29,6 @@ import scala.concurrent.Future
 class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller with MongoController {
 
   private final val logger: Logger = LoggerFactory.getLogger(classOf[ThridParties])
-
   /*
    * Get a JSONCollection (a Collection implementation that is designed to work
    * with JsObject, Reads and Writes.)
@@ -40,10 +40,13 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
   def analysiscollection: JSONCollection = db.collection[JSONCollection](DBName.analysisType)
   def streamcollection: JSONCollection = db.collection[JSONCollection](DBName.stream)
   def rawcollection: JSONCollection = db.collection[JSONCollection](DBName.rawStream)
+  def logcollection: JSONCollection = db.collection[JSONCollection](DBName.log)
+  def log(any:JsValue) = {
+    logcollection.insert(any)
+  }
   // ------------------------------------------ //
   // Using case classes + Json Writes and Reads //
   // ------------------------------------------ //
-
   import models.JsonFormats._
   import models._
 
@@ -59,7 +62,7 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
       request.body.validate[AddThridParty].map {
         message =>
         // `user` is an instance of the case class `models.User`
-          findThridParty(message.username).flatMap( option =>
+          val future = findThridParty(message.username).flatMap( option =>
             option.map ( thridParty => Future.successful(BadRequest("username exist"))).getOrElse[Future[Result]]( {
               val thridParty =
                 ThridParty(
@@ -74,6 +77,14 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
               }}
             )
           )
+          future onFailure {
+            case t => log(
+              Json.toJson(
+                UserLog(
+                  UserContent(message.username,message.password,LogName.thridparty,t.getMessage),
+                  LogName.createuser)))
+          }
+          future
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
@@ -89,7 +100,7 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
       request.body.validate[CheckPassword].map {
         message =>
           // `user` is an instance of the case class `models.User`
-          checkPasswords(message.username, message.password).flatMap{
+          val future = checkPasswords(message.username, message.password).flatMap{
             isTrue: Boolean =>
             if (isTrue) {
               Future.successful(Ok)
@@ -98,6 +109,14 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
               Future.successful(BadRequest("username does not exist"))
             }
           }
+          future onFailure {
+            case t => log(
+              Json.toJson(
+                UserLog(
+                  UserContent(message.username,message.password,LogName.thridparty,t.getMessage),
+                  LogName.checkpassword)))
+          }
+          future
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
@@ -106,7 +125,7 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
       request.body.validate[UpdatePassword].map {
         message: UpdatePassword =>
           // find our user by first name and last name
-          checkPasswords(message.username,message.oldPass).flatMap (
+          val future = checkPasswords(message.username,message.oldPass).flatMap (
             isTrue =>
               if (isTrue) findThridParty(message.username).flatMap (
                 thrid => {
@@ -120,13 +139,21 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
               )
               else Future.successful(BadRequest("username/password wrong"))
           )
+          future onFailure {
+            case t => log(
+              Json.toJson(
+                UpdatePasswordLog(
+                  UpdatePasswordContent(message.username,message.oldPass,
+                    message.newPass,LogName.thridparty,t.getMessage))))
+          }
+          future
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
   def addRawStream = Action.async(parse.json) {
     request =>
       request.body.validate[AddRawStreamMessage].map { message =>
-        findThridParty(message.username).flatMap( opt => opt.map( thridParty =>
+        val future = findThridParty(message.username).flatMap( opt => opt.map( thridParty =>
           if (thridParty.password == message.password) parserMatcher.getParser(message.filetype).map( prsr =>
             getAnalysisTypeDetail(thridParty.preferable_analysis).flatMap( listAnalysisType => {
               val id = BSONObjectID.generate.stringify
@@ -142,14 +169,22 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
             })
           ) getOrElse Future.successful(BadRequest("filetype not supported"))
           else Future.successful(BadRequest("Password doesn't match"))
-        ) getOrElse Future.successful(BadRequest("user doesn't exist")))
+        ) getOrElse Future.successful(BadRequest("user doesn't exist"))
+        )
+        future onFailure {
+          case t => log(
+            Json.toJson(
+              AddRawStreamLog(
+                AddRawStreamContent(t.getMessage,message))))
+        }
+        future
       } getOrElse Future.successful(BadRequest("invalid json"))
   }
 
   def getStreamIdList = Action.async(parse.json) {
     request =>
       request.body.validate[GetStreamIdList].map { message =>
-        findThridParty(message.username).flatMap( opt => opt.map( thridParty =>
+        val future = findThridParty(message.username).flatMap( opt => opt.map( thridParty =>
           if (thridParty.password == message.password){
               val future = streamcollection
                 .find(Json.obj("id_provider" -> thridParty._id))
@@ -163,14 +198,22 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
           }
           else
             Future.successful(BadRequest("Password wrong"))
-        ) getOrElse Future.successful(BadRequest("User doesn't exist")))
+        ) getOrElse Future.successful(BadRequest("User doesn't exist"))
+        )
+        future onFailure {
+          case t => log(
+            Json.toJson(
+              UserLog(
+                UserContent(message.username,message.password,LogName.thridparty,t.getMessage),LogName.getstreamidlist)))
+        }
+        future
       } getOrElse Future.successful(BadRequest("invalid json format"))
   }
 
   def updatePreferable = Action.async(parse.json) {
     request =>
       request.body.validate[UpdatePreferable].map( message => {
-        findThridParty(message.username).flatMap( opt => opt.map( thridParty =>
+        val future = findThridParty(message.username).flatMap( opt => opt.map( thridParty =>
           if (thridParty.password == message.password){
             collection
               .update(
@@ -184,14 +227,22 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
           }
           else
             Future.successful(BadRequest("Password wrong"))
-        ) getOrElse Future.successful(BadRequest("User doesn't exist")))
+        ) getOrElse Future.successful(BadRequest("User doesn't exist"))
+        )
+        future onFailure {
+          case t => log(
+            Json.toJson(
+              UpdatePreferableLog(
+                UpdatePreferableContent(message,t.getMessage))))
+        }
+        future
       }) getOrElse Future.successful(BadRequest("invalid format"))
   }
 
   def getPreferable = Action.async(parse.json) {
     request =>
       request.body.validate[GetPreferableAnalysis].map( message => {
-        findThridParty(message.username).flatMap( opt => opt.map( thridParty =>
+        val future = findThridParty(message.username).flatMap( opt => opt.map( thridParty =>
           if (thridParty.password == message.password){
             val returnMessage = ReturnGetPreferableAnalysis(thridParty.preferable_analysis)
             Future.successful(Ok(Json.toJson(returnMessage)))
@@ -199,6 +250,14 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
           else
             Future.successful(BadRequest("Password wrong"))
         ) getOrElse Future.successful(BadRequest("User doesn't exist")))
+        future onFailure {
+          case t => log(
+            Json.toJson(
+              UserLog(
+                UserContent(message.username,message.password,LogName.thridparty,t.getMessage),
+                LogName.getpreferable)))
+        }
+        future
       }) getOrElse Future.successful(BadRequest("invalid format"))
   }
 

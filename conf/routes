@@ -25,8 +25,6 @@ POST    /thridparty/update_preferable   @controllers.ThridParties.updatePreferab
 GET     /thridparty/get_all_stream_id   @controllers.ThridParties.getStreamIdList
 POST    /thridparty/add_stream      @controllers.ThridParties.addRawStream
 
-GET     /test                       @controllers.Users.test
-
 # Analysis Type API
 GET     /analysis/all               @controllers.AnalysisTypes.getAllTypes
 GET     /analysis/get/:id           @controllers.AnalysisTypes.getSpesificTypes(id)

@@ -1,5 +1,6 @@
 package controllers
 
+import models.message.log._
 import models.{DBName, message}
 import models.message._
 import play.modules.reactivemongo.MongoController
@@ -27,7 +28,6 @@ import play.modules.reactivemongo.json.BSONFormats
 class Users extends Controller with MongoController {
 
   private final val logger: Logger = LoggerFactory.getLogger(classOf[Users])
-
   /*
    * Get a JSONCollection (a Collection implementation that is designed to work
    * with JsObject, Reads and Writes.)
@@ -37,6 +37,10 @@ class Users extends Controller with MongoController {
    */
   def collection: JSONCollection = db.collection[JSONCollection](DBName.user)
   def streamcollection: JSONCollection = db.collection[JSONCollection](DBName.stream)
+  def logcollection: JSONCollection = db.collection[JSONCollection](DBName.log)
+  def log(any:JsValue) = {
+    logcollection.insert(any)
+  }
 
   // ------------------------------------------ //
   // Using case classes + Json Writes and Reads //
@@ -58,7 +62,7 @@ class Users extends Controller with MongoController {
         message =>
         // `user` is an instance of the case class `models.User`
           val user = User(BSONObjectID.generate.stringify,message.username,message.password,Seq())
-          findUser(message.username).flatMap(option =>
+          val future = findUser(message.username).flatMap(option =>
             if (option.isEmpty)
               collection.insert(user).map {
                 lastError =>
@@ -68,6 +72,13 @@ class Users extends Controller with MongoController {
             else
               Future.successful(BadRequest("User exist"))
           )
+          future onFailure {
+            case t => log(
+              Json.toJson(
+                UserLog(
+                  UserContent(message.username,message.password,LogName.user,t.getMessage),LogName.createuser)))
+          }
+          future
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
@@ -83,13 +94,21 @@ class Users extends Controller with MongoController {
       request.body.validate[CheckPassword].map {
         message =>
           // `user` is an instance of the case class `models.User`
-          findUser(message.username).map(
+          val future = findUser(message.username).map(
             option =>
               if (!option.isEmpty)
                 if (option.get.password == message.password) Ok
                 else BadRequest("Wrong Password")
               else BadRequest("User doesn't exist")
           )
+          future onFailure {
+            case t => log(
+              Json.toJson(
+                UserLog(
+                  UserContent(message.username,message.password,LogName.user,t.getMessage),
+                  LogName.checkpassword)))
+          }
+          future
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
@@ -105,7 +124,7 @@ class Users extends Controller with MongoController {
       request.body.validate[UpdatePassword].map {
         message =>
           // `user` is an instance of the case class `models.User`
-          findUser(message.username).flatMap(
+          val future = findUser(message.username).flatMap(
             option =>
               if (!option.isEmpty)
                 if (option.get.password == message.oldPass) {
@@ -120,6 +139,13 @@ class Users extends Controller with MongoController {
                 else Future.successful(BadRequest("Wrong Password"))
               else Future.successful(BadRequest("User doesn't exist"))
           )
+          future onFailure {
+            case t => log(
+              Json.toJson(
+                UpdatePasswordLog(
+                  UpdatePasswordContent(message.username,message.oldPass,message.newPass,LogName.user,t.getMessage))))
+          }
+          future
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
@@ -131,7 +157,7 @@ class Users extends Controller with MongoController {
       request.body.validate[GetRandomStream].map {
         message =>
           // `user` is an instance of the case class `models.User`
-          findUser(message.username).flatMap(
+          val future = findUser(message.username).flatMap(
             option =>
               if (!option.isEmpty)
                 if (option.get.password == message.password) {
@@ -152,6 +178,14 @@ class Users extends Controller with MongoController {
                 else Future.successful(BadRequest("Wrong Password"))
               else Future.successful(BadRequest("User doesn't exist"))
           )
+          future onFailure {
+            case t => log(
+              Json.toJson(
+                UserLog(
+                  UserContent(message.username,message.password,LogName.user,t.getMessage),
+                  LogName.getrandomstream)))
+          }
+          future
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
@@ -163,7 +197,7 @@ class Users extends Controller with MongoController {
       request.body.validate[ValidateStream].map {
         message =>
           // `user` is an instance of the case class `models.User`
-          findUser(message.username).flatMap(
+          val future = findUser(message.username).flatMap(
             option =>
               if (!option.isEmpty)
                 if (option.get.password == message.password)
@@ -221,6 +255,13 @@ class Users extends Controller with MongoController {
                 else Future.successful(BadRequest("Wrong Password"))
               else Future.successful(BadRequest("User doesn't exist"))
           )
+          future onFailure {
+            case t => log(
+              Json.toJson(
+                ValidateStreamLog(
+                  ValidateStreamContent(message,t.getMessage))))
+          }
+          future
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
@@ -232,7 +273,7 @@ class Users extends Controller with MongoController {
       request.body.validate[GetVisitedStreams].map {
         message =>
           // `user` is an instance of the case class `models.User`
-          findUser(message.username).flatMap(
+          val future = findUser(message.username).flatMap(
             option =>
               if (!option.isEmpty)
                 if (option.get.password == message.password) {
@@ -242,14 +283,15 @@ class Users extends Controller with MongoController {
                 else Future.successful(BadRequest("Wrong Password"))
               else Future.successful(BadRequest("User doesn't exist"))
           )
+          future onFailure {
+            case t => log(
+              Json.toJson(
+                UserLog(
+                  UserContent(message.username,message.password,LogName.user,t.getMessage),
+                  LogName.getvisitedstream)))
+          }
+          future
       }.getOrElse(Future.successful(BadRequest("invalid json")))
-  }
-
-  def test = Action.async(parse.anyContent) {
-    req =>
-      val test = Stream(BSONObjectID.generate.stringify,"557a71727e26b89e01c953dd",3,"test lebih validasi", "Sekarang", 6, Seq())
-      collection.insert(Json.toJson(test))
-      Future.successful(Ok(Json.toJson(test)))
   }
 
   def findUser(username: String): Future[Option[User]] = {
