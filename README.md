@@ -24,6 +24,7 @@ Testing
 ----------
 
 **Highly recommended to backup data from your MongoDB**
+
 1. The test will require "test" database on mongo, if you use it please make backup of the database and drop the database (db.dropDatabase())
 2. copy the dump folder in test folder to the mongoDB instalation folder and restore it (mongorestore)
 3. type "activator test" in shell at project folder
