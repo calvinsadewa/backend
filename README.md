@@ -1,59 +1,29 @@
-Modern Web Template
+Backend DER
 ===========
 
-**AngularJS - Scala - Play - Guice - PlayReactiveMongo**
+**Based on Modern Web Template from activator**
 
-A full application stack for a Modern Web application, lets review the components:
-
-* **AngularJS** - client side javascript framework for creating complex MVC applications in Javascript,
-fronted with Twitter bootstrap CSS framework, because well, im not a web designer.
-  * Take a look at what the google cool kids are upto here : [AngularJS](http://angularjs.org/)
-
-* **Bootstrap** - Bootstrap components written in pure AngularJS
-  *  [http://angular-ui.github.io/bootstrap/](http://angular-ui.github.io/bootstrap/)
-
-* **CoffeeScript** - CoffeeScript is an attempt to expose the good parts of JavaScript in a simple way.
-  *  [http://coffeescript.org/](http://coffeescript.org/)
-
-* **PlayFramework** - currently using 2.3.4 with the scala API
-  *  [PlayFramework Docs](http://www.playframework.com/documentation/2.3.x/Home)
-
-* **Guice** integration for Dependency injection,
-  * Special thanks to the typesafehub team for their activator : [Play-Guice](http://www.typesafe.com/activator/template/play-guice)
-
-* **PlayReactiveMongo** gives interaction with MongoDB providing a non-blocking driver as well as some useful additions for handling JSON.
-  * Check out their GitHub: [Play-ReactiveMongo](https://github.com/ReactiveMongo/Play-ReactiveMongo)
+A backend for DER using MongoDB and Play framework
 
 
-
-Getting Started
+Requirement
 ----------
 
 Your development environment will require:
-*  SBT / Play see [here]() for installation instructions.
-*  MongoDB see [here]() for installation instructions.
+*  Activator / Play.
+*  MongoDB.
 
-Once the prerequisites have been installed, you will be able to execute the following from a terminal.
+Getting started
+----------
 
-```
-../modern-web-template >  sbt run
-```
+1. Go to directory where the github project located
+2. Run the activator from command line (type "activator" in window cmd)
+3. enter "run"
 
-This should fetch all the dependencies and start a Web Server listening on *localhost:9000*
+Testing
+----------
 
-```
-[info] Loading project definition from ../modern-web-template/project
-[info] Set current project to modern-web-template
-[info] Updating modern-web-template...
-...
-[info] Done updating.
-
---- (Running the application from SBT, auto-reloading is enabled) ---
-
-[info] play - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
-
-(Server started, use Ctrl+D to stop and go back to the console...)
-
-```
-
-Note: This will create a MongoDB Collection for you automatically, a freebie from the Driver!
+**Highly recommended to backup data from your MongoDB**
+1. The test will require "test" database on mongo, if you use it please make backup of the database and drop the database (db.dropDatabase())
+2. copy the dump folder in test folder to the mongoDB instalation folder and restore it (mongorestore)
+3. type "activator test" in shell at project folder
