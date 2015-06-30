@@ -1,23 +1,32 @@
-val tolerance = 0.001
-
-def fixedPoint(f:Double => Double)(initialGuess:Double) ={
-  def isCloseEnough(guess: Double) = {
-    val interval = (guess - f(guess)) / guess
-    Math.abs(interval) < tolerance
-  }
-
-  def iterate(guess:Double):Double = {
-    if (isCloseEnough(guess)) guess
-    else iterate(f(guess))
-  }
-
-  iterate(initialGuess)
+trait ContentMarshaller {
+  def apply(content:String) : String
 }
 
-def averageDamp(f:Double => Double)(x:Double) = {
-  (x + f(x))/2
+trait TwitterMarshaller extends ContentMarshaller{
+  def apply(content:String) = {
+    "This is twitter marshaller"
+  }
 }
 
-def square(n:Int) = fixedPoint(averageDamp(x => n/x))(n)
+trait XmlMarshaller extends ContentMarshaller{
+  def apply(content:String) = {
+    "This is xml marshaller"
+  }
+}
 
-square(80)
+trait coba{
+  this: ContentMarshaller =>
+}
+
+lazy val a = new coba with TwitterMarshaller
+lazy val b = new coba with XmlMarshaller
+
+a("magic")
+b("magic")
+
+val data = 111 :: "Hlalo" :: Nil
+
+val num::string::Nil = data
+
+num
+string

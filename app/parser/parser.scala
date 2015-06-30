@@ -12,15 +12,15 @@ import play.api.libs.json._
 /**
  * Base class of Parser which transform content of rawstream
  */
-abstract class Parser {
+trait Parser {
   def parse(content:String,
             maxvalidasi:Int,
             analysis: Seq[AnalysisType],
-            idprovider:String = "",
-            idrawstream:String = "") : Option[Stream]
+            idprovider:String,
+            idrawstream:String) : Option[Stream]
 }
 
-class ParserMatcher{
+trait ParserMatcher{
   def getParser(filetype:String):Option[Parser] = {
     filetype match {
       case "raw" => Some(new DirectParser)
@@ -29,12 +29,12 @@ class ParserMatcher{
   }
 }
 
-class DirectParser extends Parser{
+sealed class DirectParser extends Parser{
   def parse(content:String,
             maxvalidasi:Int,
             analysis: Seq[AnalysisType],
-            idprovider:String = "",
-            idrawstream:String = "") = {
+            idprovider:String,
+            idrawstream:String) = {
     Option(Stream(idrawstream,idprovider,maxvalidasi,content,new Date().toString,0,analysis))
   }
 }
