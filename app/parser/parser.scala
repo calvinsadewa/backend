@@ -29,6 +29,8 @@ trait ParserMatcher{
   }
 }
 
+class ParserMatcherImpl extends ParserMatcher
+
 sealed class DirectParser extends Parser{
   def parse(content:String,
             maxvalidasi:Int,
