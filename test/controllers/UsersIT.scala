@@ -140,12 +140,12 @@ class UsersIT extends Specification{
     }
 
     "get random stream" in {
-      var json = Json.toJson(GetRandomStream("coba","benar"))
       running(FakeApplication()) {
         var gettedStreamId: Seq[String] = Seq()
         var i = 0
         for (i <- 1 to 50)
         {
+          var json = Json.toJson(GetRandomStream("coba","benar"))
           val request = FakeRequest.apply(GET, "/user/get_random_stream").withJsonBody(json)
           val response = route(request)
           response.isDefined mustEqual true
@@ -165,9 +165,9 @@ class UsersIT extends Specification{
     }
 
     "validate stream" in {
-      val seqAnalysis = Seq(FinishedAnalysis("Sentimen","Negatif"),FinishedAnalysis("Demography","10-19"))
-      var json = Json.toJson(ValidateStream("coba","benar","557a7c9d7e26b84302120c93",seqAnalysis))
       running(FakeApplication()) {
+        val seqAnalysis = Seq(FinishedAnalysis("Sentimen","Negatif"),FinishedAnalysis("Demography","10-19"))
+        var json = Json.toJson(ValidateStream("coba","benar","557a7c9d7e26b84302120c93",seqAnalysis))
         var request = FakeRequest.apply(POST, "/user/validate_stream").withJsonBody(json)
           var response = route(request)
           response.isDefined mustEqual true

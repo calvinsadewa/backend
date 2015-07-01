@@ -157,15 +157,11 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
           if (thridParty.password == message.password) parserMatcher.getParser(message.filetype).map( prsr =>
             getAnalysisTypeDetail(thridParty.preferable_analysis).flatMap( listAnalysisType => {
               val id = BSONObjectID.generate.stringify
-              prsr.parse(message.content, message.maxvalidasi, listAnalysisType, thridParty._id, id).map( stream =>
-                rawcollection.insert(RawStream(id,message.content,message.filetype)).flatMap { lastError =>
-                  logger.debug(s"Successfully inserted to raw stream with LastError: $lastError")
-                  streamcollection.insert(stream).map { err =>
-                    logger.debug(s"Successfully inserted to raw stream with LastError: $lastError")
-                    Ok
-                  }
-                }
-              ) getOrElse Future.successful(BadRequest("content doesn;t match file type"))
+              prsr.parse(message.content, message.maxvalidasi, listAnalysisType, thridParty._id, id).map { stream =>
+                rawcollection.insert(RawStream(id, message.content, message.filetype))
+                streamcollection.insert(stream)
+                Future.successful(Ok)
+              } getOrElse Future.successful(BadRequest("content doesn;t match file type"))
             })
           ) getOrElse Future.successful(BadRequest("filetype not supported"))
           else Future.successful(BadRequest("Password doesn't match"))

@@ -1,8 +1,5 @@
-import models.Stream
-import play.api.libs.json
-import reactivemongo.bson.BSONObjectID
+def mapFun[T, U](xs: List[T], f: T => U): List[U] =
+  (xs foldRight List[U]())( f(_) :: _ )
 
-1 to 100 map { e =>
-  val id = BSONObjectID.generate.stringify
-  val s = Stream(id,)
-}
+val l:List[Int] = List(1,2,3,4)
+mapFun[Int,String](l, Function"Ini" + (_ * 2))
