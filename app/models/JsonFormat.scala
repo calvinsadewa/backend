@@ -10,6 +10,7 @@ object JsonFormats {
   import play.api.libs.json.Json
 
   // Generates Writes and Reads for Feed and User thanks to Json Macros
+  implicit val additionalContentFormat = Json.format[AdditionalContent]
   implicit val finishedAnalysisFormat = Json.format[FinishedAnalysis]
   implicit val directJsonRawStreamFormat = Json.format[AddRawStreamMessage]
   implicit val visitedStreamFormat = Json.format[VisitedStream]

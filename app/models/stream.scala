@@ -10,5 +10,8 @@ case class Stream(
                    content: String ,
                    date: String,
                    total_validate: Int,
-                   analysis: Seq[AnalysisType]
+                   analysis: Seq[AnalysisType],
+                   data:Option[Seq[AdditionalContent]] = None
 )
+
+case class AdditionalContent(name: String, value:String)

@@ -12,6 +12,7 @@ import play.api.libs.json._
 /**
  * Base class of Parser which transform content of rawstream
  */
+//Return stream if content can be parsed, none if cannot
 trait Parser {
   def parse(content:String,
             maxvalidasi:Int,
@@ -24,6 +25,8 @@ trait ParserMatcher{
   def getParser(filetype:String):Option[Parser] = {
     filetype match {
       case "raw" => Some(new DirectParser)
+      case "twitter" => Some(new TwiterParser)
+      case "facebook" => Some(new FacebookParser)
       case _ => None
     }
   }

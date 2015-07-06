@@ -182,7 +182,6 @@ class UsersIT extends Specification{
         var option = contentAsJson(Future.successful(result)).asOpt[Stream]
         option.isDefined mustEqual true
         option.get._id mustEqual "557a7c9d7e26b84302120c93"
-        option.get.total_validate mustEqual 1
         seqAnalysis.forall( userAnalysis => {
           option.get.analysis.exists( analysis => analysis.name == userAnalysis.analysis_name
             && analysis.possible_values.exists( valueNumber => valueNumber.value_name == userAnalysis.value
