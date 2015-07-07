@@ -29,3 +29,12 @@ Testing
 2. copy the dump folder in test folder to the mongoDB instalation folder and restore it (mongorestore)
 3. (Optional) import many-stream.json in test folder to mongo (mongoimport --db test --collection streams many-stream.json)
 4. type "activator test" in shell at project folder
+
+Configuring
+----------
+See configuring play for starter
+you can change the database used by changing mongodb.uri in application.conf
+
+Documentation
+----------
+activator doc
