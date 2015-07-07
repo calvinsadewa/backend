@@ -4,6 +4,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Date
 
+import com.fasterxml.jackson.core.JsonParseException
 import models.{AdditionalContent, Stream, AnalysisType}
 import play.api.libs.json.{JsResult, Json}
 
@@ -18,6 +19,9 @@ object FacebookParser {
   implicit val facebookPostFormat = Json.format[FacebookPost]
 }
 
+/** Facebook string parser.
+ *
+ */
 class FacebookParser extends Parser{
   //content priority : name > message
   import FacebookParser.facebookPostFormat
@@ -26,8 +30,8 @@ class FacebookParser extends Parser{
              maxvalidasi: Int,
              analysis: Seq[AnalysisType],
              idprovider: String,
-             idrawstream: String): Option[Stream] = {
-    Json.parse(content).validate[FacebookPost].map { post =>
+             idrawstream: String): Option[Stream] =
+    try Json.parse(content).validate[FacebookPost].asOpt.map { post =>
       val content:String =
         post.name.getOrElse(
           post.message.getOrElse("")
@@ -37,8 +41,8 @@ class FacebookParser extends Parser{
           post.comments.map(
             _.data.map(
               _.map(c => ("comment",Some(c.message)))
-            ).getOrElse(Seq())
-          ).getOrElse(Seq())
+            ).getOrElse(Nil)
+          ).getOrElse(Nil)
       val additional:Seq[AdditionalContent] = processed.filter{
         case (c,o) => o.isDefined
       }.map{
@@ -46,9 +50,12 @@ class FacebookParser extends Parser{
       }
       val dateTime = ZonedDateTime.parse(post.created_time,FacebookParser.FacebookDateFormat)
       val UTC = new Date(dateTime.toEpochSecond*1000).toString
-      Some(Stream(idrawstream,idprovider,maxvalidasi,content,UTC,0,analysis,Some(additional)))
-    }.getOrElse(None)
-  }
+      Stream(idrawstream,idprovider,maxvalidasi,content,UTC,0,analysis,Some(additional))
+    }
+   catch  {
+      case ex: JsonParseException => None
+      case e:Throwable => throw e
+   }
 }
 
 case class FacebookPost(name:Option[String],

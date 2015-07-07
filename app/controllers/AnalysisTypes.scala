@@ -15,9 +15,7 @@ import play.modules.reactivemongo.json.collection.JSONCollection
 import scala.concurrent.Future
 
 /**
- * The Users controllers encapsulates the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
- * play plugin. This provides a non-blocking driver for mongoDB as well as some useful additions for handling JSon.
- * @see https://github.com/ReactiveMongo/Play-ReactiveMongo
+ * Controller for processing request Associated with analysis type.
  */
 @Singleton
 class AnalysisTypes extends Controller with MongoController {
@@ -25,18 +23,13 @@ class AnalysisTypes extends Controller with MongoController {
   private final val logger: Logger = LoggerFactory.getLogger(classOf[AnalysisTypes])
 
   /*
-   * Get a JSONCollection (a Collection implementation that is designed to work
-   * with JsObject, Reads and Writes.)
-   * Note that the `collection` is not a `val`, but a `def`. We do _not_ store
-   * the collection reference to avoid potential problems in development with
-   * Play hot-reloading.
+   * Analysis collection.
    */
   def collection: JSONCollection = db.collection[JSONCollection](DBName.analysisType)
 
-  // ------------------------------------------ //
-  // Using case classes + Json Writes and Reads //
-  // ------------------------------------------ //
-
+  /**
+   * return all analysis type ([[ReturnGetAllTypes]]).
+   */
   def getAllTypes = Action.async {
     request =>
       collection.find(Json.obj()).cursor[AnalysisType].collect[Seq]().map( seq =>
@@ -44,6 +37,11 @@ class AnalysisTypes extends Controller with MongoController {
       )
   }
 
+  /**
+   * Return spesific analysis type.
+   * get stream with spesific id.
+   * return Ok with [[AnalysisType]] if sucess, BadRequest if fail
+   */
   def getSpesificTypes(id: String) = Action.async {
     request =>
       collection.find(Json.obj("_id" -> id)).one[AnalysisType].map(

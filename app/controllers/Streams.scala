@@ -15,23 +15,17 @@ import reactivemongo.bson.BSONObjectID
 import scala.concurrent.Future
 
 /**
- * The Users controllers encapsulates the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
- * play plugin. This provides a non-blocking driver for mongoDB as well as some useful additions for handling JSon.
- * @see https://github.com/ReactiveMongo/Play-ReactiveMongo
+ * Controller for processing request associated with streams.
  */
 @Singleton
 class Streams extends Controller with MongoController {
 
   private final val logger: Logger = LoggerFactory.getLogger(classOf[Streams])
 
-  /*
-   * Get a JSONCollection (a Collection implementation that is designed to work
-   * with JsObject, Reads and Writes.)
-   * Note that the `collection` is not a `val`, but a `def`. We do _not_ store
-   * the collection reference to avoid potential problems in development with
-   * Play hot-reloading.
-   */
+  /** Stream collection. */
   def collection: JSONCollection = db.collection[JSONCollection](DBName.stream)
+
+  /** Raw Stream collection. */
   def rawcollection: JSONCollection = db.collection[JSONCollection](DBName.rawStream)
 
   // ------------------------------------------ //
@@ -41,6 +35,10 @@ class Streams extends Controller with MongoController {
   import models.JsonFormats._
   import models._
 
+  /**
+   *  get stream with spesific id.
+   *  return Ok with [[Stream]] if sucess, BadRequest if fail.
+   */
   def getStream(id:String) = Action.async {
     collection.find(Json.obj("_id" -> id)).one[Stream].map( _.map( stream =>
         Ok(Json.toJson(stream))
@@ -48,6 +46,10 @@ class Streams extends Controller with MongoController {
     )
   }
 
+  /**
+   *  get raw stream with spesific id.
+   *  return Ok with [[RawStream]] if sucess, BadRequest if fail
+   */
   def getRawStream(id:String) = Action.async {
     rawcollection.find(Json.obj("_id" -> id)).one[RawStream].map( _.map( raw =>
       Ok(Json.toJson(raw))

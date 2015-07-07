@@ -1,7 +1,6 @@
 import com.google.inject.{Guice, AbstractModule}
 import parser.{ParserMatcherImpl, ParserMatcher}
 import play.api.GlobalSettings
-import services.{SimpleUUIDGenerator, UUIDGenerator}
 
 /**
  * Set up the Guice injector and provide the mechanism for return objects from the dependency graph.
@@ -13,7 +12,6 @@ object Global extends GlobalSettings {
    */
   val injector = Guice.createInjector(new AbstractModule {
     protected def configure() {
-      bind(classOf[UUIDGenerator]).to(classOf[SimpleUUIDGenerator])
       bind(classOf[ParserMatcher]).to(classOf[ParserMatcherImpl])
     }
   })

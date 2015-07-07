@@ -20,23 +20,18 @@ import play.api.libs.json._
 import play.modules.reactivemongo.json.BSONFormats
 
 /**
- * The Users controllers encapsulates the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
- * play plugin. This provides a non-blocking driver for mongoDB as well as some useful additions for handling JSon.
- * @see https://github.com/ReactiveMongo/Play-ReactiveMongo
+ * Controller to handle request associated to user.
  */
 @Singleton
 class Users extends Controller with MongoController {
 
   private final val logger: Logger = LoggerFactory.getLogger(classOf[Users])
-  /*
-   * Get a JSONCollection (a Collection implementation that is designed to work
-   * with JsObject, Reads and Writes.)
-   * Note that the `collection` is not a `val`, but a `def`. We do _not_ store
-   * the collection reference to avoid potential problems in development with
-   * Play hot-reloading.
-   */
+
+  /** user collection. */
   def collection: JSONCollection = db.collection[JSONCollection](DBName.user)
+  /** stream collection. */
   def streamcollection: JSONCollection = db.collection[JSONCollection](DBName.stream)
+  /** log collection. */
   def logcollection: JSONCollection = db.collection[JSONCollection](DBName.log)
   def log(any:JsValue) = {
     logcollection.insert(any)
@@ -49,15 +44,13 @@ class Users extends Controller with MongoController {
   import models._
   import models.JsonFormats._
 
+  /** Create new User.
+    * request body should be [[AddUser]] in json format.
+    * User username must be unique.
+    * return Created if ok, BadRequest if fail.
+    */
   def createUser = Action.async(parse.json) {
     request =>
-    /*
-     * request.body is a JsValue.
-     * There is an implicit Writes that turns this JsValue as a JsObject,
-     * so you can call insert() with this JsValue.
-     * (insert() takes a JsObject as parameter, or anything that can be
-     * turned into a JsObject using a Writes.)
-     */
       request.body.validate[AddUser].map {
         message =>
         // `user` is an instance of the case class `models.User`
@@ -82,15 +75,12 @@ class Users extends Controller with MongoController {
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
+  /** Check password.
+    * request body should be [[CheckPassword]] in json format.
+    * return Ok if success, BadRequest if fail.
+    */
   def checkPassword = Action.async(parse.json) {
     request =>
-      /*
-       * request.body is a JsValue.
-       * There is an implicit Writes that turns this JsValue as a JsObject,
-       * so you can call insert() with this JsValue.
-       * (insert() takes a JsObject as parameter, or anything that can be
-       * turned into a JsObject using a Writes.)
-       */
       request.body.validate[CheckPassword].map {
         message =>
           // `user` is an instance of the case class `models.User`
@@ -112,15 +102,13 @@ class Users extends Controller with MongoController {
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
+
+  /** Update password.
+    * request body should be [[UpdatePassword]] in json format.
+    * return Ok if success, BadRequest if fail.
+    */
   def updatePassword = Action.async(parse.json) {
     request =>
-      /*
-       * request.body is a JsValue.
-       * There is an implicit Writes that turns this JsValue as a JsObject,
-       * so you can call insert() with this JsValue.
-       * (insert() takes a JsObject as parameter, or anything that can be
-       * turned into a JsObject using a Writes.)
-       */
       request.body.validate[UpdatePassword].map {
         message =>
           // `user` is an instance of the case class `models.User`
@@ -149,6 +137,10 @@ class Users extends Controller with MongoController {
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
+  /** Get random stream.
+    * request body should be [[GetRandomStream]] in json format.
+    * return Ok with [[Stream]] if success, BadRequest if fail.
+    */
   def getRandomStream = Action.async(parse.json) {
     request =>
       /*
@@ -189,6 +181,10 @@ class Users extends Controller with MongoController {
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
+  /** validate a stream.
+    * request body should be [[ValidateStream]] in json format.
+    * return Ok if success, BadRequest if fail.
+    */
   def validateStream = Action.async(parse.json) {
     request =>
       /*
@@ -265,6 +261,10 @@ class Users extends Controller with MongoController {
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
+  /** Get all visited stream.
+    * request body should be [[GetVisitedStreams]] in json format.
+    * return Ok if success, BadRequest if fail.
+    */
   def VisitedStreams = Action.async(parse.json) {
     request =>
       /*

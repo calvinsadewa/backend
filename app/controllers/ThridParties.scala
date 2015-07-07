@@ -21,25 +21,22 @@ import reactivemongo.bson.BSONObjectID
 import scala.concurrent.Future
 
 /**
- * The Users controllers encapsulates the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
- * play plugin. This provides a non-blocking driver for mongoDB as well as some useful additions for handling JSon.
- * @see https://github.com/ReactiveMongo/Play-ReactiveMongo
+ * Controller for processing request associated with ThridParty.
  */
 @Singleton
 class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller with MongoController {
 
   private final val logger: Logger = LoggerFactory.getLogger(classOf[ThridParties])
-  /*
-   * Get a JSONCollection (a Collection implementation that is designed to work
-   * with JsObject, Reads and Writes.)
-   * Note that the `collection` is not a `val`, but a `def`. We do _not_ store
-   * the collection reference to avoid potential problems in development with
-   * Play hot-reloading.
-   */
+
+  /** thrid party collection. */
   def collection: JSONCollection = db.collection[JSONCollection](DBName.thridParty)
+  /** analysis collection. */
   def analysiscollection: JSONCollection = db.collection[JSONCollection](DBName.analysisType)
+  /** stream collection. */
   def streamcollection: JSONCollection = db.collection[JSONCollection](DBName.stream)
+  /** raw stream collection. */
   def rawcollection: JSONCollection = db.collection[JSONCollection](DBName.rawStream)
+  /** log collection. */
   def logcollection: JSONCollection = db.collection[JSONCollection](DBName.log)
   def log(any:JsValue) = {
     logcollection.insert(any)
@@ -50,15 +47,13 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
   import models.JsonFormats._
   import models._
 
+  /** Create new Thrid Party.
+    * request body should be [[AddThridParty]] in json format.
+    * Thrid party username must be unique.
+    * return Created if ok, BadRequest if fail.
+    */
   def createThridParty = Action.async(parse.json) {
     request =>
-    /*
-     * request.body is a JsValue.
-     * There is an implicit Writes that turns this JsValue as a JsObject,
-     * so you can call insert() with this JsValue.
-     * (insert() takes a JsObject as parameter, or anything that can be
-     * turned into a JsObject using a Writes.)
-     */
       request.body.validate[AddThridParty].map {
         message =>
         // `user` is an instance of the case class `models.User`
@@ -88,15 +83,12 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
+  /** check password.
+    * request body should be [[CheckPassword]] in json format.
+    * return Ok if right, BadRequest if wrong/fail
+    */
   def checkPassword = Action.async(parse.json) {
     request =>
-      /*
-       * request.body is a JsValue.
-       * There is an implicit Writes that turns this JsValue as a JsObject,
-       * so you can call insert() with this JsValue.
-       * (insert() takes a JsObject as parameter, or anything that can be
-       * turned into a JsObject using a Writes.)
-       */
       request.body.validate[CheckPassword].map {
         message =>
           // `user` is an instance of the case class `models.User`
@@ -120,6 +112,10 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
+  /** update password.
+    * request body should be [[UpdatePassword]] in json format.
+    * return Ok if right, BadRequest if wrong/fail
+    */
   def updatePassword = Action.async(parse.json) {
     request =>
       request.body.validate[UpdatePassword].map {
@@ -150,6 +146,10 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
       }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
+  /** add raw stream and parse it into stream then add to database.
+    * request body should be [[AddRawStreamMessage]] in json format.
+    * return Ok if success, BadRequest if fail.
+    */
   def addRawStream = Action.async(parse.json) {
     request =>
       request.body.validate[AddRawStreamMessage].map { message =>
@@ -177,6 +177,10 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
       } getOrElse Future.successful(BadRequest("invalid json"))
   }
 
+  /** Get stream id list of a thrid party.
+    * request body should be [[GetStreamIdList]] in json format.
+    * return Ok with [[ReturnGetStreamIdList]] if success, BadRequest if fail.
+    */
   def getStreamIdList = Action.async(parse.json) {
     request =>
       request.body.validate[GetStreamIdList].map { message =>
@@ -206,6 +210,10 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
       } getOrElse Future.successful(BadRequest("invalid json format"))
   }
 
+  /** Update preferable analysis.
+    * request body should be [[UpdatePreferable]] in json format.
+    * return Ok if success, BadRequest if fail.
+    */
   def updatePreferable = Action.async(parse.json) {
     request =>
       request.body.validate[UpdatePreferable].map( message => {
@@ -235,6 +243,10 @@ class ThridParties @Inject() (parserMatcher: ParserMatcher) extends Controller w
       }) getOrElse Future.successful(BadRequest("invalid format"))
   }
 
+  /** Get all preferable analysis.
+    * request body should be [[GetPreferableAnalysis]] in json format.
+    * return Ok with [[ReturnGetPreferableAnalysis]] if success, BadRequest if fail.
+    */
   def getPreferable = Action.async(parse.json) {
     request =>
       request.body.validate[GetPreferableAnalysis].map( message => {

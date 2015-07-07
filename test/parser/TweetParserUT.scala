@@ -25,7 +25,7 @@ class TweetParserUT  extends Specification{
       stream.total_validate must_== 0
     }
     "not parse invalid tweet" in {
-      val valid =  "{}"
+      val valid =  "{"
       val opt = parser.parse(valid,10,analysis,"2","3")
       opt.isDefined must_==  false
     }

@@ -2,7 +2,7 @@ package models
 
 import play.modules.reactivemongo.json.collection.JSONCollection
 
-/**
+/** db name.
  * Created by calvin-pc on 6/12/2015.
  */
 object DBName {

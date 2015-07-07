@@ -3,7 +3,7 @@ package models
 import models.message._
 import models.message.log._
 
-/**
+/** json format of model and message.
  * Created by calvin-pc on 6/10/2015.
  */
 object JsonFormats {

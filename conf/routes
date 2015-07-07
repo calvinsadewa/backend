@@ -4,10 +4,6 @@
 # Note: @controllers syntax signifies the actual controller instance, retrieved via GlobalSettings.getController().
 # ~~~~
 
-# Single endpoint for serving AngularJS
-GET     /                           @controllers.Application.index
-GET     /randomUUID                 @controllers.Application.randomUUID
-
 # User management API
 POST    /user/add_user              @controllers.Users.createUser
 GET     /user/check_password        @controllers.Users.checkPassword
@@ -32,6 +28,3 @@ GET     /analysis/get/:id           @controllers.AnalysisTypes.getSpesificTypes(
 # Stream API
 GET     /stream/:id                 @controllers.Streams.getStream(id)
 GET     /raw/:id                    @controllers.Streams.getRawStream(id)
-
-# Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
