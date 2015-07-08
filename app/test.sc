@@ -1,8 +1,12 @@
-import java.time.format.DateTimeFormatter
-import java.util.Date
-import javax.xml.bind.DatatypeConverter
-import java.time.ZonedDateTime
-val format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")
-val x = ZonedDateTime.parse("2015-07-05T17:12:25+0000",format)//"T06:49:17+0000")
-x.toEpochSecond
-new Date(x.toEpochSecond*1000)
+val mnem = Map(
+  '2' -> "ABC", '3' -> "DEF", '4' -> "GHI", '5' -> "JKL",
+  '6' -> "MNO", '7' -> "PQRS", '8' -> "TUV", '9' -> "WXYZ"
+)
+
+val charCode = mnem.flatMap{
+  case (code,string) => string.map((_,code)).toMap
+}
+
+def wordCode(s:String) = s.toUpperCase map charCode
+
+wordCode("HALOBANDUNG")

@@ -154,7 +154,12 @@ class Users extends Controller with MongoController {
               if (!option.isEmpty)
                 if (option.get.password == message.password) {
                   //Body
-                  val query = Json.obj( "$where" -> "this.max_validasi > this.total_validate")
+                  val query = Json.obj(
+                    "$where" -> "this.max_validasi > this.total_validate" ,
+                    "_id" -> Json.obj( 
+                        "$nin" -> (for {stream <- option.get.visited_streams} yield stream.id_stream)
+                        ) 
+                    )
                   db.command(
                     Count(
                       streamcollection.name,
