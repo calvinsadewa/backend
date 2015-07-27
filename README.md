@@ -38,3 +38,17 @@ you can change the database used by changing mongodb.uri in application.conf
 Documentation
 ----------
 activator doc
+
+Deployment
+----------
+
+The deployment environment will require:
+*  Java Runtime Environment
+
+1. Make standalone distribution (activator dist)
+2. Take the snapshot zip in directory /target/universal/
+3. Deploy the snapshot zip in server and unzip it
+4. Run backend script in bin folder
+
+**Remember to edit the application.conf in conf folder**
+**The path/to/snapshot/ should not contain space**
