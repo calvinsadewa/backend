@@ -10,7 +10,7 @@ import reactivemongo.core.commands.{Skip, Count}
 import scala.collection.mutable
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import reactivemongo.api.{QueryOpts, Cursor}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import org.slf4j.{LoggerFactory, Logger}
@@ -37,6 +37,36 @@ class Users extends Controller with MongoController {
     logcollection.insert(any)
   }
 
+  //class for caching the total valid document
+  class TotalDocument {
+    var total = 0
+    var last_updated:Long = 0;//in millisecond
+    val max_time = 600000//in millisecond
+    val query = Json.obj(
+      "$where" -> "this.max_validasi > this.total_validate"
+    )
+    def get() = { //Maybe Blocking
+      if (System.currentTimeMillis() - last_updated > max_time) {
+        this.synchronized {
+          if (System.currentTimeMillis() - last_updated > max_time) {
+            import scala.concurrent.duration._
+            Await.result(
+              db.command(
+                Count(
+                  streamcollection.name,
+                  Some(BSONFormats.toBSON(query).get.asInstanceOf[BSONDocument])
+                )).map { t =>
+                total = t;
+                last_updated = System.currentTimeMillis();
+              }, 5 minutes)
+          }
+        }
+      }
+      total
+    }
+  }
+
+  val totalDocument = new TotalDocument;
   // ------------------------------------------ //
   // Using case classes + Json Writes and Reads //
   // ------------------------------------------ //
@@ -154,23 +184,17 @@ class Users extends Controller with MongoController {
               if (!option.isEmpty)
                 if (option.get.password == message.password) {
                   //Body
-                  val query = Json.obj(
-                    "$where" -> "this.max_validasi > this.total_validate" ,
-                    "_id" -> Json.obj( 
-                        "$nin" -> (for {stream <- option.get.visited_streams} yield stream.id_stream)
-                        ) 
+                  {
+                    val query = Json.obj(
+                      "$where" -> "this.max_validasi > this.total_validate"
                     )
-                  db.command(
-                    Count(
-                      streamcollection.name,
-                      Some(BSONFormats.toBSON(query).get.asInstanceOf[BSONDocument])
-                    )).flatMap( count => {
+                    val count = totalDocument.get() //Maybe Blocking
                     val random = Math.floor(Math.random()*count).toInt
                     streamcollection.find(query).options(QueryOpts(random)).one[Stream].flatMap(
                       _.map( stream => Future.successful(Ok(Json.toJson(stream)))
                       ).getOrElse(Future.successful(BadRequest("No Stream Found")))
                     )
-                  })
+                  }
                 }
                 else Future.successful(BadRequest("Wrong Password"))
               else Future.successful(BadRequest("User doesn't exist"))

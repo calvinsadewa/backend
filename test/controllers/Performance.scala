@@ -179,7 +179,16 @@ class Performance extends Specification{
           val response = route(request)
           val result = Await.result(response.get, timeout)
           val t2 = System.currentTimeMillis()
-          api.Logger.info("[PF] get random stream " + (t2 - t1) + "ms")
+          api.Logger.info("[PF] get random stream " + (t2 - t1) + "ms");
+          {
+            var json = Json.toJson(GetRandomStream("coba","benar"))
+            val request = FakeRequest.apply(GET, "/user/get_random_stream").withJsonBody(json)
+            val t1 = System.currentTimeMillis()
+            val response = route(request)
+            val result = Await.result(response.get, timeout)
+            val t2 = System.currentTimeMillis()
+            api.Logger.info("[PF] get random stream second" + (t2 - t1) + "ms")
+          }
         }
         {
           val seqAnalysis = Seq(FinishedAnalysis("Sentimen","Negatif"),FinishedAnalysis("Demography","10-19"))
